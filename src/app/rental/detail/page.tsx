@@ -119,7 +119,7 @@ const DetailPage = () => {
       Notiflix.Notify.warning("Please fill the required fields");
     } else {
       const response = await fetch(
-        "https://formsubmit.co/ajax/vidhuraneethika000@gmail.com",
+        "https://formsubmit.co/ajax/info@404travels.com",
         {
           method: "POST",
           headers: {

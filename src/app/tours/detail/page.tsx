@@ -108,7 +108,7 @@ const DetailPage = () => {
   const bookTour = async () => {
     Notiflix.Loading.circle("Booking Tour..");
     const response = await fetch(
-      "https://formsubmit.co/ajax/vidhuraneethika000@gmail.com",
+      "https://formsubmit.co/ajax/info@404travels.com",
       {
         method: "POST",
         headers: {
@@ -156,7 +156,7 @@ const DetailPage = () => {
         amount: 300.0,
         validTimeLimit: 5,
         returnUrl: "https://www.abc.com",
-        customerMail: "vidhuraneethika000@gmail.com",
+        customerMail: "info@404travels.com",
         customerMobile: "0761821354",
         mode: "WEB",
         orderSummary: "Order Description",
