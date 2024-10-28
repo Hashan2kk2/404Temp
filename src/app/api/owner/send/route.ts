@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 const Mailjet = require('node-mailjet');
 
 const mailjet = Mailjet.apiConnect(
-    process.env.MJ_APIKEY_PUBLIC,
-    process.env.MJ_APIKEY_PRIVATE,
+    "ee5cac60a9580f4d69146c998e2134f4",
+    "18ccecba810546edcfe07f000445b53c",
 );
 
 export async function POST(request: NextRequest) {

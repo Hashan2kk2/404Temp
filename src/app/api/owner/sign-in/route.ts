@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
                         id: user.id,
                         role: 'owner'
                     },
-                    process.env.NEXTAUTH_SECRET!,
+                    "4qBZwk/YhkX6055zgYpA09ye04AokbqA7b9U91HIWg8=",
                     {expiresIn: "24h"}
                 );
 
