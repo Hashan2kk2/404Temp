@@ -2,42 +2,56 @@
 "use client";
 import Navigation from "@/components/Navigation";
 import {
+  Button,
+  Snippet,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
+  Tooltip,
 } from "@nextui-org/react";
 import {
-  BsArrowBarUp,
-  BsCalendar4,
   BsCheckCircleFill,
-  BsDot,
   BsHeart,
-  BsPerson,
-  BsPersonPlus,
+  BsHeartFill,
+  BsPerson
 } from "react-icons/bs";
 import Label from "@/elements/Label";
-import React, { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { IoBedOutline } from "react-icons/io5";
 import { LiaBathSolid, LiaDoorOpenSolid } from "react-icons/lia";
 import Footer from "@/components/Footer";
 import NewsLetter from "@/components/NewsLetter";
-import PrimaryButton from "@/elements/PrimaryButton";
-import DateRangePick from "@/elements/DateRangePick";
-import GuestsDropDown from "@/elements/GuestsDropDown";
 import { useSearchParams } from "next/navigation";
-import { all } from "deepmerge";
 import Notiflix from "notiflix";
 import CustomerReview from "@/components/CustomerReview";
 import StarDisplay from "@/elements/StarDisplay";
+import ReserveForm from "@/components/ReserveForm";
+import PrimaryButton from "@/elements/PrimaryButton";
+import { calcLength } from "framer-motion";
 
 const DetailPage = () => {
-  const [dateRangePickerCustom, setDateRangePickerCustom] = useState(false);
+  // const [totalPrice, setTotalPrice] = useState(0);
+  const [isFlight, setIsFlight] = useState(false);
 
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const [currentUrl, setCurrentUrl] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
+
+  interface SavedItems {
+    stay: string[];
+    tour: string[];
+    rental: string[];
+  }
+
+  const [savedItems, setSavedItems] = useState<SavedItems>({
+    stay: [],
+    tour: [],
+    rental: [],
+  });
 
   const [dataset, setDataset] = useState<any>([]);
   const [userDetails, setUserDetails] = useState({
@@ -92,6 +106,9 @@ const DetailPage = () => {
         ? JSON.parse(res[0].description)
         : {};
       res[0].description = parsedDescription;
+      res[0].availabilitySchedule = res[0].availabilitySchedule
+        ? res[0].availabilitySchedule.split(",")
+        : [];
       setDataset(res);
     } catch (error) {
       console.error("Error retrieving data:", error);
@@ -104,10 +121,11 @@ const DetailPage = () => {
       Notiflix.Loading.remove();
     });
     fetchUser().then((r) => r);
+    setCurrentUrl(window.location.href);
   }, [id]);
 
   const [formData, setFormData] = useState({
-    checkInCheckOut: "",
+    bookingDates: [],
     guestCount: "",
   });
 
@@ -121,12 +139,12 @@ const DetailPage = () => {
   const handleListingBooking = async () => {
     Notiflix.Loading.circle("Submitting...");
 
-    if (formData.checkInCheckOut === "" || formData.guestCount === "") {
+    if (formData.guestCount === "") {
       Notiflix.Loading.remove();
       Notiflix.Notify.warning("Please fill the required fields");
     } else {
       const response = await fetch(
-        "https://formsubmit.co/ajax/info@404travels.com",
+        "https://formsubmit.co/ajax/vidhuraneethika000@gmail.com",
         {
           method: "POST",
           headers: {
@@ -136,22 +154,141 @@ const DetailPage = () => {
           body: JSON.stringify({
             "Mail Type": "Stay Booking",
             "Stay Name": dataset[0] && dataset[0].placeName,
-            "Check In - Check Out": formData.checkInCheckOut,
-            "Booking Date": new Date().toLocaleDateString(),
+            Price: "$" + calculateTotalPrice(),
+            "Requested Guest Count": formData.guestCount,
+            "Booking Dates": formData.bookingDates,
             "Booking Customer": userDetails.name,
             "Customer Email": userDetails.email,
+            "Requested Date": new Date().toISOString().split("T")[0],
             _template: "table",
+            _subject: "Stay Booking",
           }),
         }
       );
       if (!response.ok) {
         Notiflix.Notify.failure("Failed to submit");
       } else {
-        Notiflix.Notify.success("Submitted successfully");
+        console.log("Booking submitted");
+        // updateDataSet();
       }
       Notiflix.Loading.remove();
     }
   };
+
+  const updateDataSet = async () => {
+
+    const response = await fetch("/api/payments/pay", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+        userId: userDetails.id,
+        type: "property_listing",
+        updatedDataSet: formData,
+        existingAvailabilitySchedule: dataset[0].availabilitySchedule,
+        price: calculateTotalPrice(), 
+      }),
+    });
+
+    if (!response.ok) {
+      Notiflix.Notify.failure("Booking Failed");
+      Notiflix.Loading.remove();
+    }
+
+    const data = await response.json();
+    if (data.message === "Success") {
+      Notiflix.Notify.success("Booking Successful. We will contact you soon.");
+      Notiflix.Loading.remove();
+    }
+  };
+
+  const calculateTotalPrice = () => {
+    const bookedDates = formData.bookingDates.map((dateString: string) => new Date(dateString));
+
+    const weekdays = bookedDates.filter((date: Date) => {
+      const day = date.getDay();
+      return day >= 1 && day <= 5;
+    });
+  
+    const weekends = bookedDates.filter((date: Date) => {
+      const day = date.getDay();
+      return day === 0 || day === 6;
+    });
+  
+    const weekdayPrice = dataset[0].description.pricing.basePriceForWeekdays;
+    const weekendPrice = dataset[0].description.pricing.basePriceForWeekends;
+  
+    const totalWeekdayPrice = weekdays.length * weekdayPrice;
+    const totalWeekendPrice = weekends.length * weekendPrice;
+    const totalPrice = totalWeekdayPrice + totalWeekendPrice;
+
+    return totalPrice;
+  };
+
+  const handleSaveChanges = async () => {
+    if (isSaved) {
+      savedItems.stay = savedItems.stay.filter((item) => item !== id);
+      setIsSaved(false);
+    } else {
+      if (id) {
+        savedItems.stay.push(id);
+      }
+      setIsSaved(true);
+    }
+
+    const response = await fetch("/api/user/manage-saved", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email: userDetails.email,
+        savedItem: savedItems,
+      }),
+    });
+    if (!response.ok) {
+      Notiflix.Notify.failure("Failed to save item");
+    }
+    const data = await response.json();
+    if (data === "Success") {
+      Notiflix.Notify.success("Saved Successfully");
+    }
+  };
+
+  const fetchSavedItems = async () => {
+    const response = await fetch(
+      `/api/user/manage-saved?email=${userDetails.email}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      Notiflix.Notify.failure("Failed to fetch saved items");
+    }
+
+    const data = await response.json();
+    if (data !== null) {
+      setSavedItems(data);
+      if (data.stay.includes(id)) {
+        setIsSaved(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (userDetails.email !== "") {
+      fetchSavedItems();
+    }
+  }, [userDetails.email]);
 
   const pricingData = dataset[0]?.description?.pricing
     ? [
@@ -163,15 +300,13 @@ const DetailPage = () => {
         name: "Base Price for Weekends",
         value: `$ ${dataset[0].description.pricing.basePriceForWeekends}`,
       },
-      {
-        name: "Monthly Discount",
-        value: `${dataset[0].description.pricing.monthlyDiscount}%`,
-      },
+      // {
+      //   name: "Monthly Discount",
+      //   value: `${dataset[0].description.pricing.monthlyDiscount}%`,
+      // },
     ]
     : [];
 
-    const [isFlight, setIsFlight] = useState(false);
-  
   return (
     <Suspense
       fallback={
@@ -222,18 +357,36 @@ const DetailPage = () => {
                     bgColor={"bg-blue-100"}
                   />
                   <div className={`flex gap-x-5`}>
-                    <button
-                      className={`flex justify-center items-center p-2 gap-x-3 bg-transparent cursor-not-allowed`}
+                    <div
+                      className={`flex justify-center items-center p-2 bg-transparent`}
                     >
-                      <BsArrowBarUp />
-                      Share
-                    </button>
-                    <button
-                      className={`flex justify-center items-center p-2 gap-x-3 bg-transparent cursor-not-allowed`}
-                    >
-                      <BsHeart />
+                      <Snippet
+                        tooltipProps={{
+                          color: "foreground",
+                          content: "Copy Link to Clipboard",
+                          placement: "left",
+                          closeDelay: 500,
+                          showArrow: true,
+                          offset: -3,
+                        }}
+                        hideSymbol={true}
+                        classNames={{ pre: "hidden", base: "bg-transparent" }}
+                        size="sm"
+                      >
+                        {currentUrl}
+                      </Snippet>
+                      Copy Link
+                    </div>
+                    <div className={`flex justify-center items-center p-2 bg-transparent gap-1`}>
+                      <Tooltip content="Click to save" placement="left" color="foreground" closeDelay={500} showArrow={true} offset={-3}>
+                        <Button isIconOnly className={'bg-transparent text-medium'} size="sm" onClick={() => {
+                          handleSaveChanges();
+                        }}>
+                          {isSaved ? <BsHeartFill className="text-red-500" /> : <BsHeart />}
+                        </Button>
+                      </Tooltip>
                       Save
-                    </button>
+                    </div>
                   </div>
                 </div>
 
@@ -249,18 +402,6 @@ const DetailPage = () => {
                   />
                   <span>Reviews</span>
                 </div>
-
-                {/* <div className={`w-full flex gap-x-5 text-sm item-center`}>
-                                    <div className={`w-12 h-12 bg-neutral-100 rounded-full relative`}>
-                                        <img aria-label="image" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
-                                            alt="clientSayMain"
-                                            className={`w-full h-full absolute top-0 left-0 object-contain rounded-full `} />
-                                        <BsCheckCircleFill
-                                            className={`absolute right-0 top-0 text-green-500 bg-white rounded-full`} />
-                                    </div>
-                                    <p className={`flex items-center text-neutral-500 dark:text-neutral-100`}>Hosted by</p>
-                                    <strong className={`flex items-center`}>Kevin Francis</strong>
-                                </div> */}
 
                 <hr
                   className={`w-full border border-neutral-200 dark:border-neutral-600`}
@@ -360,14 +501,6 @@ const DetailPage = () => {
                         }
                       )}
                   </ul>
-
-                  {/* <p>
-                                        {
-                                            // @ts-ignore
-                                            dataset[0] && dataset[0].description
-
-                                        }
-                                    </p> */}
                 </div>
               </div>
 
@@ -399,9 +532,6 @@ const DetailPage = () => {
                         )
                     )}
                 </div>
-
-                {/* <hr className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px]`} /> */}
-                {/* <SecondaryButton content={'View more 20 amenities'} className={'w-fit'} events={''} /> */}
               </div>
 
               <div
@@ -466,84 +596,14 @@ const DetailPage = () => {
                 userRole={userDetails.role}
                 type="property_listing"
               />
-
-              {/* <div
-                                className={`w-full flex flex-col p-8 rounded-xl border dark:bg-[#1f2937] border-neutral-200 dark:border-neutral-600 gap-y-5 mt-10`}>
-                                <h2 className={`text-3xl font-semibold `}>Availability</h2>
-                                <p className={`text-neutral-500 dark:text-neutral-100`}>Prices may increase on weekends or
-                                    holidays</p>
-                                <hr className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px]`} />
-                                <div className="grid items-center justify-center grid-cols-2 gap-x-4">
-                                    <RangeCalendar
-                                        className={`shadow-none`}
-                                        aria-label="Date (No Selection)" />
-                                    <RangeCalendar
-                                        className={`shadow-none`}
-                                        aria-label="Date (Uncontrolled)"
-                                        defaultValue={{
-                                            start: today(getLocalTimeZone()),
-                                            end: today(getLocalTimeZone()).add({ weeks: 1 }),
-                                        }}
-                                    />
-                                </div>
-                            </div> */}
-
-              {/* <div
-                                className={`w-full flex flex-col p-8 rounded-xl border dark:bg-[#1f2937] border-neutral-200 dark:border-neutral-600 gap-y-5 mt-10`}>
-                                <h2 className={`text-3xl font-semibold `}>Things to know</h2>
-                                <hr className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px]`} />
-
-                                <div className={`w-full flex flex-col`}>
-                                    <h3 className={`text-xl font-semibold `}>Cancellation policy</h3>
-                                    <p className={`mt-5`}> Refund 50% of the booking value when customers cancel the room
-                                        within 48 hours after
-                                        successful booking and 14 days before the check-in time.</p>
-                                    <p> Then, cancel the room 14 days before the check-in time, get a 50% refund of the
-                                        total amount paid (minus the service fee).</p>
-                                </div>
-                                <hr className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px]`} />
-
-                                <div className={`w-full flex flex-col`}>
-                                    <h3 className={`text-xl font-semibold  mt-5`}>Check-in time</h3>
-                                    <Table classNames={{
-                                        tr: 'h-14',
-                                    }}
-                                        removeWrapper={true}
-                                        radius={'sm'}
-                                        shadow={'none'}
-                                        isStriped={true} hideHeader={true}>
-                                        <TableHeader>
-                                            <TableColumn>Name</TableColumn>
-                                            <TableColumn>Value</TableColumn>
-                                        </TableHeader>
-                                        <TableBody>
-                                            <TableRow>
-                                                <TableCell>Check-in</TableCell>
-                                                <TableCell>08:00 am - 12:00 am</TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                                <TableCell>Check-out</TableCell>
-                                                <TableCell>02:00 pm - 04:00 pm</TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                                <hr className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px]`} />
-
-                                <div className={`w-full flex flex-col`}>
-                                    <h3 className={`text-xl font-semibold `}>Special Note</h3>
-                                    <ul className={`list-disc list-inside mt-5`}>
-                                        <li>Ban and I will work together to keep the landscape and environment green and
-                                            clean by not littering, not using stimulants and respecting people around.
-                                        </li>
-                                        <li>Do not sing karaoke past 11:30</li>
-                                    </ul>
-                                </div>
-                            </div> */}
             </div>
 
             <div className={`col-span-full md:col-span-3 lg:col-span-2`}>
               <div className="max-w-sm mx-auto bg-white dark:bg-[#1f2937] shadow-lg rounded-xl p-6 mt-10 border border-neutral-200 dark:border-neutral-600 sticky top-28">
+                <h3>Pricing</h3>
+                <hr
+                  className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px] my-2`}
+                />
                 <div className="flex flex-col">
                   <div className="flex items-center gap-x-2">
                     <div className="text-2xl font-semibold">
@@ -560,15 +620,13 @@ const DetailPage = () => {
                         <p className="mb-2"></p>
                       )}
                     </div>
-                    <p className={`text-neutral-500 dark:text-neutral-100`}>
-                      night
+                    <p className={`text-neutral-500 dark:text-neutral-100 text-[10px]`}>
+                      / Per Night for Weekdays
                     </p>
-                    <small>(Weekdays)</small>
                   </div>
                   <div className="flex items-center gap-x-2">
                     <div className="text-2xl font-semibold">
-                      {dataset[0]?.description?.pricing
-                        ?.basePriceForWeekends ? (
+                      {dataset[0]?.description?.pricing?.basePriceForWeekends ? (
                         <p className="mb-2">
                           ${" "}
                           {
@@ -580,68 +638,53 @@ const DetailPage = () => {
                         <p className="mb-2"></p>
                       )}
                     </div>
-                    <p className={`text-neutral-500 dark:text-neutral-100`}>
-                      night
+                    <p className={`text-neutral-500 dark:text-neutral-100 text-[10px]`}>
+                      / Per Night for Weekends
                     </p>
-                    <small>(Weekends)</small>
-                  </div>
-                  {/* <div className="flex items-center gap-x-1">
-                                        <StarDisplay value={4.5} fontClass={`text-orange-600`} />
-                                    </div> */}
-                </div>
-                <div className="flex flex-col gap-4 p-4 mt-6 border border-neutral-200 dark:border-neutral-600 rounded-2xl">
-                  <div className="flex items-center">
-                    <BsCalendar4 className="text-4xl text-neutral-300" />
-                    <DateRangePick
-                      dateRangeLabelText={"Check-in - Check-out"}
-                      setDateRangePickerCustom={setDateRangePickerCustom}
-                      dateRangePickerCustom={dateRangePickerCustom}
-                      handler={handleChange}
-                      name="checkInCheckOut"
-                    />
-                  </div>
-                  <hr className="my-2" />
-                  <div className="flex items-center">
-                    <BsPersonPlus className="text-4xl text-neutral-300" />
-                    <div className="ps-4">
-                      <GuestsDropDown
-                        arrowIcon={false}
-                        className="font-bold"
-                        dropDownClassName="mt-6"
-                        handler={handleChange}
-                        name="guestCount"
-                      />
-                      <span className="text-neutral-400">Guests</span>
-                    </div>
                   </div>
                 </div>
-                {/* <div className={`w-full flex flex-col gap-y-4 text-neutral-500 dark:text-neutral-100 mt-5`}>
-                                    <div className={`flex w-full justify-between`}>
-                                        <p>$119 x 3 night</p>
-                                        <p>$357</p>
-                                    </div>
-                                    <div className={`flex w-full justify-between`}>
-                                        <p>Service charge</p>
-                                        <p>$0</p>
-                                    </div>
-                                    <hr className={`w-full border border-neutral-200 dark:border-neutral-600`} />
-                                    <div className={`flex w-full justify-between`}>
-                                        <p>Total</p>
-                                        <p>$357</p>
-                                    </div>
-                                </div> */}
-                <PrimaryButton
-                  content={"Reserve"}
-                  className={"w-full mt-5"}
-                  events={handleListingBooking}
-                />
+
+                <hr className="my-4" />
+
+                {userDetails.role === "user" ? (
+                  <ReserveForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    handler={handleListingBooking}
+                    formHandler={handleChange}
+                    type="property_listing"
+                    unavailableDates={dataset[0]?.availabilitySchedule}
+                  />
+                ) : userDetails.role === "" ? (
+                  <PrimaryButton
+                    content={"Login to Book"}
+                    events={() => {
+                      window.location.href = "/sign-in";
+                    }}
+                    className="w-full"
+                  />
+                ) : (
+                  <div className="w-full flex flex-col">
+                    <small className="text-neutral-500">
+                      You&apos;re an {userDetails.role}. Only users can book
+                      properties.
+                    </small>
+                    <small className="text-neutral-500">
+                      if you want to book a propertie, please logout &{" "}
+                      <a className="text-primary font-bold" href="/sign-in">
+                        sign-in
+                      </a>{" "}
+                      as a user.
+                    </small>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <NewsLetter />
         </div>
-        <Footer setIsFlight={setIsFlight}/>
+        <Footer setIsFlight={setIsFlight} />
       </div>
     </Suspense>
   );

@@ -1,18 +1,16 @@
 "use client";
 import Navigation from "@/components/Navigation";
 import {
-  BsArrowBarUp,
-  BsCalendar4,
   BsCheckCircleFill,
   BsCloudFill,
   BsDot,
   BsHeart,
+  BsHeartFill,
   BsPersonCircle,
-  BsStarFill,
   BsTranslate,
 } from "react-icons/bs";
 import Label from "@/elements/Label";
-import React, { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import NewsLetter from "@/components/NewsLetter";
 import PrimaryButton from "@/elements/PrimaryButton";
@@ -20,12 +18,28 @@ import { useSearchParams } from "next/navigation";
 import Notiflix from "notiflix";
 import CustomerReview from "@/components/CustomerReview";
 import StarDisplay from "@/elements/StarDisplay";
-import DateRangePick from "@/elements/DateRangePick";
+import { Button, Snippet, Tooltip } from "@nextui-org/react";
+import ReserveForm from "@/components/ReserveForm";
 
 const DetailPage = () => {
   const searchParams = useSearchParams();
   const tourId = searchParams.get("id");
   const [dateRangePickerCustom, setDateRangePickerCustom] = useState(false);
+  const [isFlight, setIsFlight] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState("");
+  const [isSaved, setIsSaved] = useState(false);
+
+  interface SavedItems {
+    stay: string[];
+    tour: string[];
+    rental: string[];
+  }
+
+  const [savedItems, setSavedItems] = useState<SavedItems>({
+    stay: [],
+    tour: [],
+    rental: [],
+  });
 
   const [tourData, setTourData] = useState<any>([]);
   const [tourImages, setTourImages] = useState([]);
@@ -35,18 +49,22 @@ const DetailPage = () => {
     email: "",
     name: "",
   });
-  const [formData, setFormData] = useState({
-    checkInCheckOut: "",
+  const [formData, setFormData] = useState<any>({
+    bookingDates: [],
   });
 
   useEffect(() => {
     Notiflix.Loading.pulse();
     initialFetch().finally(() => Notiflix.Loading.remove());
+    setCurrentUrl(window.location.href);
   }, [searchParams]);
+
+
+
 
   const initialFetch = async () => {
     await fetchUser();
-    await fetchTourDetails(searchParams.get("id"));
+    await fetchTourDetails(tourId);
   };
 
   const fetchUser = async () => {
@@ -89,6 +107,10 @@ const DetailPage = () => {
         throw new Error("Failed to fetch-data");
       }
       const data = await response.json();
+      data.toursList[0].availabilitySchedule = data.toursList[0]
+        .availabilitySchedule
+        ? data.toursList[0].availabilitySchedule.split(",")
+        : [];
       setTourData(data.toursList);
       setTourImages(data.tourImages);
     } catch (error: any) {
@@ -96,19 +118,10 @@ const DetailPage = () => {
     }
   };
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-    console.log(formData);
-  };
-
   const bookTour = async () => {
     Notiflix.Loading.circle("Booking Tour..");
     const response = await fetch(
-      "https://formsubmit.co/ajax/info@404travels.com",
+      "https://formsubmit.co/ajax/vidhuraneethika000@gmail.com",
       {
         method: "POST",
         headers: {
@@ -118,13 +131,14 @@ const DetailPage = () => {
         body: JSON.stringify({
           "Mail Type": "Tour Booking",
           "Tour Name": tourData[0]?.title,
-          Price: "$ " + tourData[0]?.price + ".00",
+          Price: "$" + tourData[0]?.price + ".00",
           Host: tourData[0]?.host,
           "Tour Type": tourData[0]?.tourType,
           "Tour Language": tourData[0]?.language,
+          "Booking Dates": formData.bookingDates,
           "Booking Customer": userDetails.name,
           "Customer Email": userDetails.email,
-          "Check In - Check Out": formData.checkInCheckOut,
+          "Requested Date": new Date().toISOString().split("T")[0],
           _template: "table",
           _subject: "Tour Booking",
         }),
@@ -134,47 +148,103 @@ const DetailPage = () => {
       Notiflix.Notify.failure("Booking Failed");
       Notiflix.Loading.remove();
     } else {
-      Notiflix.Notify.success("Booking Successful. We will contact you soon.");
+      console.log("Booking Success");
       Notiflix.Loading.remove();
+      // updateDataSet();
     }
-    // payNow();
   };
 
-  const payNow = async () => {
-
-    const merchantRID = Math.floor(Math.random() * 100);
-
-    const response = await fetch("https://dev.app.marx.lk/api/v2/ipg/orders", {
+  const updateDataSet = async () => {
+    const response = await fetch("/api/payments/pay", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        user_secret:
-          "$2a$10$UWuAe5ffzVQJ5BZSwWJpFuK0G5/djFGpulhpUupAjwl04K/TU6UnO",
+        Accept: "application/json",
       },
       body: JSON.stringify({
-        merchantRID: merchantRID,
-        amount: 300.0,
-        validTimeLimit: 5,
-        returnUrl: "https://www.abc.com",
-        customerMail: "info@404travels.com",
-        customerMobile: "0761821354",
-        mode: "WEB",
-        orderSummary: "Order Description",
-        customerReference: "CT2020/09/09/CUST0001",
+        id: tourId,
+        userId: userDetails.id,
+        type: "tours",
+        updatedDataSet: formData,
+        existingAvailabilitySchedule: tourData[0].availabilitySchedule,
+        price: tourData[0].price,
       }),
     });
 
     if (!response.ok) {
-      Notiflix.Notify.failure("Payment Failed");
-    } 
+      Notiflix.Notify.failure("Booking Failed");
+      Notiflix.Loading.remove();
+    }
 
     const data = await response.json();
-    console.log(data.data.payUrl);
-    window.location.href = data.data.payUrl;
-
+    if (data.message === "Success") {
+      Notiflix.Loading.remove();
+      window.open(data.payUrl, "_blank");
+    }
   };
 
-  const [isFlight, setIsFlight] = useState(false);
+  const handleSaveChanges = async () => {
+    if (isSaved) {
+      savedItems.tour = savedItems.tour.filter((item) => item !== tourId);
+      setIsSaved(false);
+    } else {
+      if (tourId) {
+        savedItems.tour.push(tourId);
+      }
+      setIsSaved(true);
+    }
+
+    const response = await fetch("/api/user/manage-saved", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email: userDetails.email,
+        savedItem: savedItems,
+      }),
+    });
+    if (!response.ok) {
+      Notiflix.Notify.failure("Failed to save item");
+    }
+    const data = await response.json();
+    if (data === "Success") {
+      Notiflix.Notify.success("Saved Successfully");
+    }
+  };
+
+
+  const fetchSavedItems = async () => {
+    const response = await fetch(
+      `/api/user/manage-saved?email=${userDetails.email}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      Notiflix.Notify.failure("Failed to fetch saved items");
+    }
+
+    const data = await response.json();
+    if (data !== null) {
+      setSavedItems(data);
+      if (data.tour.includes(tourId)) {
+        setIsSaved(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (userDetails.email !== "") {
+      fetchSavedItems();
+    }
+  }, [userDetails.email]);
 
   return (
     <Suspense
@@ -193,11 +263,10 @@ const DetailPage = () => {
             {tourImages.slice(0, 6).map((image: any, index) => (
               <div
                 key={index}
-                className={`${
-                  index === 0
-                    ? "col-span-3 row-span-4 md:col-span-2 md:row-span-2 "
-                    : "col-span-1 row-span-1 md:col-span-1 md:row-span-1 aspect-video-horizontal-landscape"
-                } rounded-xl overflow-clip hover:brightness-75 transition-all duration-300 cursor-pointer bg-cover bg-center`}
+                className={`${index === 0
+                  ? "col-span-3 row-span-4 md:col-span-2 md:row-span-2 "
+                  : "col-span-1 row-span-1 md:col-span-1 md:row-span-1 aspect-video-horizontal-landscape"
+                  } rounded-xl overflow-clip hover:brightness-75 transition-all duration-300 cursor-pointer bg-cover bg-center`}
               >
                 <img
                   src={`..${image.image}`}
@@ -223,18 +292,34 @@ const DetailPage = () => {
                     bgColor={"bg-blue-100"}
                   />
                   <div className={`flex gap-x-5`}>
-                    <button
-                      className={`flex justify-center items-center p-2 gap-x-3 bg-transparent cursor-not-allowed`}
+                    <div
+                      className={`flex justify-center items-center p-2 bg-transparent`}
                     >
-                      <BsArrowBarUp />
-                      Share
-                    </button>
-                    <button
-                      className={`flex justify-center items-center p-2 gap-x-3 bg-transparent cursor-not-allowed`}
-                    >
-                      <BsHeart />
+                      <Snippet
+                        tooltipProps={{
+                          color: "foreground",
+                          content: "Copy Link to Clipboard",
+                          placement: "right",
+                          closeDelay: 500,
+                        }}
+                        hideSymbol={true}
+                        classNames={{ pre: "hidden", base: "bg-transparent" }}
+                        size="sm"
+                      >
+                        {currentUrl}
+                      </Snippet>
+                      Copy Link
+                    </div>
+                    <div className={`flex justify-center items-center p-2 bg-transparent gap-1`}>
+                      <Tooltip content="Click to save" placement="left" color="foreground" closeDelay={500} showArrow={true} offset={-3}>
+                        <Button isIconOnly className={'bg-transparent text-medium'} size="sm" onClick={() => {
+                          handleSaveChanges();
+                        }}>
+                          {isSaved ? <BsHeartFill className="text-red-500" /> : <BsHeart />}
+                        </Button>
+                      </Tooltip>
                       Save
-                    </button>
+                    </div>
                   </div>
                 </div>
 
@@ -361,6 +446,10 @@ const DetailPage = () => {
 
             <div className={`col-span-full md:col-span-3 lg:col-span-2`}>
               <div className="max-w-sm mx-auto bg-white dark:bg-[#1f2937] shadow-lg rounded-xl p-6 mt-10 border border-neutral-200 dark:border-neutral-600 sticky top-28">
+                <h3>Pricing</h3>
+                <hr
+                  className={`w-full border border-neutral-200 dark:border-neutral-600 max-w-[100px] my-2`}
+                />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <p className={`text-2xl font-semibold`}>
@@ -369,10 +458,8 @@ const DetailPage = () => {
                   </div>
                 </div>
 
-                <div
-                  className={`w-full flex flex-col gap-y-4 text-neutral-500 dark:text-neutral-100 mt-5`}
-                >
-                  <h2 className={`text-xl font-semibold `}>
+                <div className={`w-full flex flex-col gap-y-4 mt-5`}>
+                  <h2 className={`text-3xl font-semibold `}>
                     Cancellation Policy
                   </h2>
                   <hr
@@ -387,29 +474,43 @@ const DetailPage = () => {
 
                 <hr className="my-4" />
 
-                <div className="flex items-center my-6">
-                  <BsCalendar4 className="text-4xl text-neutral-300" />
-                  <DateRangePick
-                    dateRangeLabelText={"Start - End"}
-                    setDateRangePickerCustom={setDateRangePickerCustom}
-                    dateRangePickerCustom={dateRangePickerCustom}
-                    handler={handleChange}
-                    name="checkInCheckOut"
+                {userDetails.role === "user" ? (
+                  <ReserveForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    handler={bookTour}
+                    type="tours"
+                    unavailableDates={tourData[0]?.availabilitySchedule}
                   />
-                </div>
-
-                <PrimaryButton
-                  content={"Book Tour"}
-                  className={"w-full mt-5"}
-                  events={bookTour}
-                />
+                ) : userDetails.role === "" ? (
+                  <PrimaryButton
+                    content={"Login to Book"}
+                    events={() => {
+                      window.location.href = "/sign-in";
+                    }}
+                    className="w-full"
+                  />
+                ) : (
+                  <div className="w-full flex flex-col">
+                    <small className="text-neutral-500">
+                      You&apos;re an {userDetails.role}. Only users can book tours.
+                    </small>
+                    <small className="text-neutral-500">
+                      if you want to book a tour, please logout &{" "}
+                      <a className="text-primary font-bold" href="/sign-in">
+                        sign-in
+                      </a>{" "}
+                      as a user.
+                    </small>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <NewsLetter />
         </div>
-        <Footer setIsFlight={setIsFlight}/>
+        <Footer setIsFlight={setIsFlight} />
       </div>
     </Suspense>
   );
