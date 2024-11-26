@@ -1,6 +1,6 @@
 import {DateRangePicker} from "@nextui-org/react";
 import {getLocalTimeZone, today} from "@internationalized/date";
-import React, {useState} from "react";
+import React, {useState, useEffect, useRef} from "react";
 
 const DateRangePick = ({dateRangeLabelText, setDateRangePickerCustom, dateRangePickerCustom, handler, name}: {
     dateRangeLabelText: string,
@@ -9,7 +9,6 @@ const DateRangePick = ({dateRangeLabelText, setDateRangePickerCustom, dateRangeP
     handler: any,
     name: string
 }) => {
-
     const [ccoDate, setCcoDate] = useState(
         // @ts-ignore
         `${today(getLocalTimeZone()).toDate().toLocaleDateString('en-US', {
@@ -21,6 +20,21 @@ const DateRangePick = ({dateRangeLabelText, setDateRangePickerCustom, dateRangeP
             day: 'numeric'
         })}`
     );
+
+    const calendarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: { target: any; }) => {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setDateRangePickerCustom(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [calendarRef]);
 
     // @ts-ignore
     const handleDateRangeChange = (newValue) => {
@@ -39,11 +53,12 @@ const DateRangePick = ({dateRangeLabelText, setDateRangePickerCustom, dateRangeP
                 }
             }
         );
+        setDateRangePickerCustom(false);
     };
 
     return (
         <>
-            <div className="ps-4 relative w-full h-full">
+            <div className="ps-4 relative w-full h-full" ref={calendarRef}>
               <span className="absolute top-0 left-4 font-bold cursor-pointer"
                     onClick={() => {
                         setDateRangePickerCustom(!dateRangePickerCustom)

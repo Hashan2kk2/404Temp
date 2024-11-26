@@ -11,7 +11,7 @@ const GuestsDropDown = ({arrowIcon, className, dropDownClassName, handler, name}
     name: string
 }) => {
 
-    const [tripAdultCount, setTripAdultCount] = useState(1);
+    const [tripAdultCount, setTripAdultCount] = useState(0);
     const [tripChildrenCount, setTripChildrenCount] = useState(0);
     const [tripInfantCount, setTripInfantCount] = useState(0);
 

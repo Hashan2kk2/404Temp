@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest) {
     const id = dataSet.get("id");
     const propertyType = dataSet.get("propertyType");
     const placeName = dataSet.get("placeName");
-    const mobileNumber = dataSet.get("mobileNumber");
+    const pickLocation = dataSet.get("pickLocation");
     const address = dataSet.get("address");
     const size = dataSet.get("size");
     const propertySizeType = dataSet.get("propertySizeType");
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
     if (
       !propertyType ||
       !placeName ||
-      !mobileNumber ||
+      !pickLocation ||
       !address ||
       !size ||
       !propertySizeType ||
@@ -131,7 +131,7 @@ export async function PUT(request: NextRequest) {
       UPDATE property_listing SET 
       placeName = ?,
       propertyType = ?, 
-      mobileNumber = ?, 
+      pickLocation = ?, 
       address = ?, 
       size = ?, 
       propertySizeType = ?,
@@ -154,7 +154,7 @@ export async function PUT(request: NextRequest) {
     const values = [
       placeName,
       propertyType,
-      mobileNumber,
+      pickLocation,
       address,
       size,
       propertySizeType,

@@ -54,7 +54,7 @@ interface Tour {
 const Listing = () => {
 
     const getReqSearchParams = useSearchParams();
-    const destination = getReqSearchParams.get("destination");
+    const tourType = getReqSearchParams.get("tourType");
     const language = getReqSearchParams.get("language");
     const noOfNights = getReqSearchParams.get("noOfNights");
 
@@ -98,14 +98,12 @@ const Listing = () => {
             setFilteredTourDataInbound(data.filter((tour: Tour) => tour.tourCategory === 'Inbound'));
             setFilteredTourDataOutbound(data.filter((tour: Tour) => tour.tourCategory === 'Outbound'));
 
-            if (data.length > 0) {
-                const maxPrice = Math.max(...data.map((tour: Tour) => tour.price));
-                setForm((prevForm) => ({
-                    ...prevForm,
-                    maxPrice: maxPrice,
-                }));
-                setSliderMaxPrice(maxPrice);
-            }
+            const maxPrice = Math.max(...data.map((tour: Tour) => tour.price));
+            setForm((prevForm) => ({
+                ...prevForm,
+                maxPrice: maxPrice,
+            }));
+            setSliderMaxPrice(maxPrice);
 
             setTourTypes(Array.from(new Set(data.map((tour: Tour) => tour.tourType))));
             setLanguages(Array.from(new Set(data.map((tour: Tour) => tour.language))));
@@ -116,16 +114,16 @@ const Listing = () => {
     };
 
     const setSearchParams = () => {
-        if (destination) {
+        if (tourType) {
             setForm((prevForm) => ({
                 ...prevForm,
-                location: destination,
+                tourType: tourType,
             }));
         }
         if (language) {
             setForm((prevForm) => ({
                 ...prevForm,
-                language: language,
+                tourType: language,
             }));
         }
         if (noOfNights) {
@@ -230,7 +228,7 @@ const Listing = () => {
 
     useEffect(() => {
         setSearchParams();
-    }, [destination, language, noOfNights]);
+    }, [tourType, language, noOfNights]);
 
     const [isFlight, setIsFlight] = useState(false);
 

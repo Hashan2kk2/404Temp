@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const propertyType = dataSet.get("propertyType");
     const placeName = dataSet.get("placeName");
-    const pickLocation = dataSet.get("pickLocation");
+    const mobileNumber = dataSet.get("mobileNumber");
     const address = dataSet.get("address");
     const size = dataSet.get("size");
     const propertySizeType = dataSet.get("propertySizeType");
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (
       !propertyType ||
       !placeName ||
-      !pickLocation ||
+      !mobileNumber ||
       !address ||
       !size ||
       !propertySizeType ||
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const addListingQuery = `
             INSERT INTO property_listing (placeName,
                                           propertyType,
-                                          pickLocation,
+                                          mobileNumber,
                                           address,
                                           size,
                                           propertySizeType,
@@ -125,13 +125,13 @@ export async function POST(request: NextRequest) {
                                           property_description,
                                           mapUrl,
                                           country)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
 
     const addListingValues = [
       placeName,
       propertyType,
-      pickLocation,
+      mobileNumber,
       address,
       size,
       propertySizeType,

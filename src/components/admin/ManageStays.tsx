@@ -130,7 +130,7 @@ const ManageStays = ({ userDetails }: { userDetails?: any }) => {
     const [formData, setFormData] = useState({
         'placeName': '',
         'propertyType': '',
-        'pickLocation': '',
+        'mobileNumber': '',
         'address': '',
         'size': '',
         'propertySizeType': '',
@@ -340,7 +340,7 @@ const ManageStays = ({ userDetails }: { userDetails?: any }) => {
             return;
         }
 
-        if (formData.propertyType === '' || formData.placeName === '' || formData.pickLocation === '' || formData.address === '' || formData.size === '' || formData.propertySizeType === '' ||  formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
+        if (formData.propertyType === '' || formData.placeName === '' || formData.mobileNumber === '' || formData.address === '' || formData.size === '' || formData.propertySizeType === '' ||  formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
             Notiflix.Loading.remove();
             Notiflix.Notify.failure('Please fill in all required fields.');
             return;
@@ -408,7 +408,7 @@ const ManageStays = ({ userDetails }: { userDetails?: any }) => {
         setFormData({
             'placeName': '',
             'propertyType': '',
-            'pickLocation': '',
+            'mobileNumber': '',
             'address': '',
             'size': '',
             'propertySizeType': '',
@@ -497,12 +497,12 @@ const ManageStays = ({ userDetails }: { userDetails?: any }) => {
                             />
 
                             <InputWLabel
-                                label="Pick Location"
+                                label="Mobile Number"
                                 inputType="text"
-                                placeHolder="Enter Location"
-                                value={formData.pickLocation}
+                                placeHolder="Enter Mobile Number"
+                                value={formData.mobileNumber}
                                 handler={handleChange}
-                                name="pickLocation"
+                                name="mobileNumber"
                             />
 
                             <InputWLabel

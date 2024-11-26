@@ -82,6 +82,7 @@ const CarListingPage = () => {
             const data = await res.json();
             setListingData(data);
             setFilteredData(data);
+            console.log(data);
 
             const maxPrice = Math.max(...data.map((listing: CarListing) => listing.pricing.basePrice1));
             setForm((prevForm) => ({

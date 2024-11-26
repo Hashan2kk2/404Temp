@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import dynamic from 'next/dynamic';
 import Notiflix from "notiflix";
 import {getCookie} from "cookies-next";
+import Orders from "@/components/admin/Orders";
 
 // Dynamically import components with SSR disabled
 const Dashboard = dynamic(() => import('@/components/admin/Dashboard'), { ssr: false });
@@ -94,6 +95,7 @@ const Page = () => {
                     {activeTab === "tab3" && <ManageTours userDetails={userDetails} />}
                     {activeTab === "tab4" && <CustomerReviews userDetails={userDetails} />}
                     {activeTab === "tab5" && <ManageUsers userDetails={userDetails} />}
+                    {activeTab === "tab6" && <Orders userDetails={userDetails} />}
                 </div>
             </div>
         </div>

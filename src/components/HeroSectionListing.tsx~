@@ -10,7 +10,7 @@ import {Dropdown, DropdownItem, DropdownMenu, DropdownTrigger} from "@nextui-org
 import GuestsDropDown from "@/elements/GuestsDropDown";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {PiCarBold} from "react-icons/pi";
-import {Popover, PopoverContent, PopoverTrigger, Slider, user} from "@nextui-org/react";
+import {Popover, PopoverContent, PopoverTrigger, Slider} from "@nextui-org/react";
 import Notiflix from "notiflix";
 import {BiTrip} from "react-icons/bi";
 import {IoCarSportOutline, IoCloudyNightOutline, IoLanguageSharp} from "react-icons/io5";
@@ -34,10 +34,10 @@ function HeroSectionListing({page,isFlight}) {
     const [vehiclePriceRange, setVehiclePriceRange] = useState('');
 
     // @ts-ignore
-    const [selectedDestination, setSelectedDestination] = useState<Selection>(new Set(["Select Destination"]));
+    const [selectedTourType, setSelectedTourType] = useState<Selection>(new Set(["Select Tour Type"]));
     // @ts-ignore
-    const selectedDestinationValue = useMemo(() => Array.from(selectedDestination).join(", ").replaceAll("_", " "),
-        [selectedDestination]
+    const selectedTourValue = useMemo(() => Array.from(selectedTourType).join(", ").replaceAll("_", " "),
+        [selectedTourType]
     );
     // @ts-ignore
     const [selectedLanguage, setSelectedLanguage] = useState<Selection>(new Set(["Select Language"]));
@@ -69,7 +69,6 @@ function HeroSectionListing({page,isFlight}) {
     const [vehicleTypes, setVehicleTypes] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [flightClassTypes, setFlightClassTypes] = useState([]);
-    const [destinations, setDestinations] = useState([]);
 
     const noOfNightsRef = useRef(null);
 
@@ -79,7 +78,6 @@ function HeroSectionListing({page,isFlight}) {
         fetchVehicleTypes().then(r => r);
         fetchDistricts().then(r => r);
         fetchFlightClassTypes().then(r => r);
-        fetchDestinations().then(r => r);
     }, []);
 
     const fetchTourTypes = async () => {
@@ -182,26 +180,6 @@ function HeroSectionListing({page,isFlight}) {
             console.error(error.message)
         }
     };
-    const fetchDestinations = async () => {
-        const tb = 'destination';
-        try {
-            const response = await fetch('/api/fetch-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({tb: tb})
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch-data destinations');
-            }
-            const data = await response.json();
-            setDestinations(data);
-        } catch (error: any) {
-            console.error(error.message)
-        }
-    }
 
     const [flightFormData, setFlightFormData] = useState({
         flyFrom: '',
@@ -215,13 +193,13 @@ function HeroSectionListing({page,isFlight}) {
         // @ts-ignore
         const noOfNight = noOfNightsRef.current.value;
 
-        if (selectedDestinationValue === 'Select Destination' && selectedLanguageValue === 'Select Language' && noOfNight === '') {
+        if (selectedTourValue === 'Select Tour Type' && selectedLanguageValue === 'Select Language' && noOfNight === '') {
             Notiflix.Notify.warning('Please select at least one filter');
         } else {
             const conditions = [];
             let baseUrl = "/tours/listing";
 
-            if (selectedDestinationValue !== 'Select Destination') conditions.push(`destination=${selectedDestinationValue}`);
+            if (selectedTourValue !== 'Select Tour Type') conditions.push(`tourType=${selectedTourValue}`);
             if (selectedLanguageValue !== 'Select Language') conditions.push(`language=${selectedLanguageValue}`);
             if (noOfNight !== '') conditions.push(`noOfNights=${noOfNight}`);
 
@@ -374,28 +352,28 @@ function HeroSectionListing({page,isFlight}) {
                                     <div className="flex items-center col-span-1 gap-2 border-r">
                                         <BiTrip className="text-3xl text-neutral-300"/>
                                         <div className="flex flex-col w-full">
-                                            <span className="block font-bold">Destination</span>
-                                            <Dropdown className="max-h-96 overflow-y-scroll scrollbar-hide">
+                                            <span className="block font-bold">Tour Type</span>
+                                            <Dropdown>
                                                 <DropdownTrigger>
                                                     <div
                                                         className="flex items-center justify-between gap-x-3 text-neutral-400 w-fit">
-                                                        <span className="block">{selectedDestinationValue}</span>
+                                                        <span className="block">{selectedTourValue}</span>
                                                         <BsChevronDown className="text-neutral-400"/>
                                                     </div>
                                                 </DropdownTrigger>
 
-                                                <DropdownMenu aria-label="Destination" variant="flat"
+                                                <DropdownMenu aria-label="Tour Type" variant="flat"
                                                               disallowEmptySelection selectionMode="single"
                                                     // @ts-ignore
-                                                              selectedKeys={selectedDestination}
+                                                              selectedKeys={selectedTourType}
                                                     // @ts-ignore
-                                                              onSelectionChange={setSelectedDestination}>
+                                                              onSelectionChange={setSelectedTourType}>
 
-                                                    {destinations.map((destination: any) => (
+                                                    {tourTypes.map((tourType: any) => (
                                                         // @ts-ignore
-                                                        <DropdownItem key={destination.name} eventKey={destination.id}
-                                                                      value={destination.name}>
-                                                            {destination.name}
+                                                        <DropdownItem key={tourType.name} eventKey={tourType.id}
+                                                                      value={tourType.name}>
+                                                            {tourType.name}
                                                         </DropdownItem>
                                                     ))}
 
@@ -408,7 +386,7 @@ function HeroSectionListing({page,isFlight}) {
                                         <IoLanguageSharp className="text-4xl text-neutral-300"/>
                                         <div className="flex flex-col w-full">
                                             <span className="block font-bold">Language</span>
-                                            <Dropdown className="max-h-96 overflow-y-scroll scrollbar-hide">
+                                            <Dropdown>
                                                 <DropdownTrigger>
                                                     <div
                                                         className="flex items-center justify-between gap-x-3 text-neutral-400 w-fit">
@@ -457,8 +435,8 @@ function HeroSectionListing({page,isFlight}) {
                                     <div className="flex items-center col-span-1 gap-2 border-r">
                                         <IoCarSportOutline className="text-3xl text-neutral-300"/>
                                         <div className="flex flex-col w-full">
-                                            <span className="block font-bold">Rental Types</span>
-                                            <Dropdown className="max-h-96 overflow-y-scroll scrollbar-hide">
+                                            <span className="block font-bold">Vehicle Type</span>
+                                            <Dropdown>
                                                 <DropdownTrigger>
                                                     <div
                                                         className="flex items-center justify-between gap-x-3 text-neutral-400 w-fit">
@@ -489,7 +467,7 @@ function HeroSectionListing({page,isFlight}) {
                                         <MdOutlineMyLocation className="text-4xl text-neutral-300"/>
                                         <div className="flex flex-col w-full">
                                             <span className="block font-bold">District</span>
-                                            <Dropdown className="max-h-96 overflow-y-scroll scrollbar-hide">
+                                            <Dropdown>
                                                 <DropdownTrigger>
                                                     <div
                                                         className="flex items-center justify-between gap-x-3 text-neutral-400 w-fit">
@@ -555,7 +533,7 @@ function HeroSectionListing({page,isFlight}) {
                             <div className={`px-8 ${activeTab === "Flights" ? "block" : "hidden"}`}>
                                 <div className="flex w-full gap-3 p-6">
                                     <div className="flex gap-3 ps-3">
-                                        <Dropdown className="max-h-96 overflow-y-scroll scrollbar-hide">
+                                        <Dropdown>
                                             <DropdownTrigger>
                                                 <span
                                                     className="cursor-pointer flex items-center gap-4 justify-between bg-white dark:bg-transparent w-fit h-fit text-[12px]  rounded-full border border-neutral-300 py-1 px-4">

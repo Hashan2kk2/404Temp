@@ -40,7 +40,7 @@ const StayForm = (
     interface FormData {
         propertyType: string;
         placeName: string;
-        pickLocation: string;
+        mobileNumber: string;
         address: string;
         size: number;
         propertySizeType: string;
@@ -78,7 +78,7 @@ const StayForm = (
     const [formData, setFormData] = useState<FormData>({
         propertyType: '',
         placeName: '',
-        pickLocation: '',
+        mobileNumber: '',
         address: '',
         size: 0,
         propertySizeType: '',
@@ -130,7 +130,7 @@ const StayForm = (
         setFormData({
             propertyType: data.propertyType,
             placeName: data.placeName,
-            pickLocation: data.pickLocation,
+            mobileNumber: data.mobileNumber,
             address: data.address,
             size: data.size,
             propertySizeType: data.propertySizeType,
@@ -311,7 +311,7 @@ const StayForm = (
     const handleSubmit = async () => {
         Notiflix.Loading.pulse('Your Request is processing...');
 
-        if (formData.propertyType === '' || formData.placeName === '' || formData.pickLocation === '' || formData.address === '' || formData.size === 0 || formData.propertySizeType === '' ||  formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
+        if (formData.propertyType === '' || formData.placeName === '' || formData.mobileNumber === '' || formData.address === '' || formData.size === 0 || formData.propertySizeType === '' ||  formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
             Notiflix.Loading.remove();
             Notiflix.Notify.failure('Please fill in all required fields.');
             return;
@@ -418,9 +418,9 @@ const StayForm = (
                     label="Pick Location"
                     inputType="text"
                     placeHolder="Enter Location"
-                    value={formData.pickLocation}
+                    value={formData.mobileNumber}
                     handler={handleChange}
-                    name="pickLocation"
+                    name="mobileNumber"
                 />
 
                 <InputWLabel

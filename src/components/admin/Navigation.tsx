@@ -2,7 +2,7 @@
 import Logo from "../../assets/img/logo/logo.png";
 import Image from "next/image";
 // @ts-ignore
-import {BsInfoCircle, BsPersonCircle, BsPower} from "react-icons/bs";
+import {BsBoxSeam, BsInfoCircle, BsPersonCircle, BsPower} from "react-icons/bs";
 import {RxHome} from "react-icons/rx";
 import {MdOutlineSpaceDashboard} from "react-icons/md";
 import {LiaCarSideSolid} from "react-icons/lia";
@@ -46,6 +46,11 @@ const Navigation = ({activeTab, setActiveTab, userDetails}: { activeTab: string,
         {
             icon: <LuUsers2/>,
             title: "Manage Users",
+            link: ""
+        },
+        {
+            icon: <BsBoxSeam />,
+            title: "Orders",
             link: ""
         },
     ];

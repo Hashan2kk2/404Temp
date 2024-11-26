@@ -89,7 +89,7 @@ const Footer = ({setIsFlight}:{setIsFlight: any}) => {
     const contactUs = [
         {
             title: "info@404travels.com",
-            link: "mailto:ininfo@404travels.com"
+            link: "mailto:info@404travels.com"
         },
         {
             title: "+94 76 371 88 06",
@@ -110,19 +110,19 @@ const Footer = ({setIsFlight}:{setIsFlight: any}) => {
                     <Image aria-label="image" src={LogoBlack} alt="logo" className="w-24"/>
                 </div>
                 <div className="flex items-center col-span-9 gap-6 ps-10 md:ps-0">
-                    <Link href="facebook.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                    <Link href="https://facebook.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
                         <BsFacebook size={15}
                                     className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/>
                     </Link>
-                    <Link href="x.com/404Travels" className="text-neutral-500 mt-4 block text-[14px]">
+                    <Link href="https://x.com/404Travels" className="text-neutral-500 mt-4 block text-[14px]">
                         <BsTwitterX size={15}
                                    className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/>
                     </Link>
-                    <Link href="tiktok.com/@404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                    <Link href="https://tiktok.com/@404travels" className="text-neutral-500 mt-4 block text-[14px]">
                         <BsTiktok size={15}
                                    className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/>
                     </Link>
-                    <Link href="instagram.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                    <Link href="https://instagram.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
                         <BsInstagram size={15}
                                      className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/>
                     </Link>
@@ -132,19 +132,19 @@ const Footer = ({setIsFlight}:{setIsFlight: any}) => {
                 <div className="hidden col-span-4 mt-8 md:col-span-1 lg:block">
                     <Image aria-label="image" src={LogoBlack} alt="logo" className="w-24"/>
                     <div className="ms-2">
-                        <a href="facebook.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                        <a href="https://facebook.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
                             <BsFacebook size={15}
                                         className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/> FaceBook
                         </a>
-                        <a href="x.com/404Travels" className="text-neutral-500 mt-4 block text-[14px]">
+                        <a href="https://x.com/404Travels" className="text-neutral-500 mt-4 block text-[14px]">
                             <BsTwitterX size={15}
                                        className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/> Twitter
                         </a>
-                        <a href="tiktok.com/@404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                        <a href="https://tiktok.com/@404travels" className="text-neutral-500 mt-4 block text-[14px]">
                             <BsTiktok size={15}
                                        className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/> Youtube
                         </a>
-                        <a href="instagram.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
+                        <a href="https://instagram.com/404travels" className="text-neutral-500 mt-4 block text-[14px]">
                             <BsInstagram size={15}
                                          className="inline cursor-pointer text-neutral-700 hover:text-primary me-2"/> Instagram
                         </a>
@@ -167,7 +167,7 @@ const Footer = ({setIsFlight}:{setIsFlight: any}) => {
                 <div className="col-span-4 mt-8 md:col-span-1">
                     <h3 className="font-bold text-[14px]">Quick Links</h3>
                     {quickLinks.map((item, index) => (
-                        <a href={item.link} key={index}
+                        <a href={item.link.startsWith('http') ? item.link : `http://${item.link}`} key={index}
                               className="text-neutral-500 mt-4 block text-[14px]"  onClick={() => { if (item.title === "Flights") { setIsFlight(true); } }}>{item.title}</a>
                     ))}
                 </div>

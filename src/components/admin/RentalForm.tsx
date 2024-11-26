@@ -255,7 +255,6 @@ const RentalForm = ({
                 clearForm();
                 setSelectedImages([]);
             }
-            console.log(fetchRentalData);
             fetchRentalData('all');
             Notiflix.Loading.remove();
             Notiflix.Notify.success("Operation Successful");

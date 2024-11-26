@@ -21,9 +21,9 @@ const Page = () => {
     const [listingData, setListingData] = useState([]);
     const totalPages = Math.ceil(listingData.length / ITEMS_PER_PAGE);
 
-    const fetchStayListingData = async (location: string, dateRange: string, amenities: { general: string[], other: string[], safety: string[] }, facilities: string[], propertyType: string, rules: string[], pickLocation: { latitude: number, longitude: number } | null, guests: string, bedrooms: string, beds: string, bathrooms: string, kitchen: string, page: number, limit: number | undefined, sort: string | undefined, order: 'asc' | 'desc' | undefined) => {
+    const fetchStayListingData = async (location: string, dateRange: string, amenities: { general: string[], other: string[], safety: string[] }, facilities: string[], propertyType: string, rules: string[], mobileNumber: string | null, guests: string, bedrooms: string, beds: string, bathrooms: string, kitchen: string, page: number, limit: number | undefined, sort: string | undefined, order: 'asc' | 'desc' | undefined) => {
         try {
-            const requestData = { location, dateRange, amenities, facilities, propertyType, rules, pickLocation, guests, bedrooms, beds, bathrooms, kitchen, page, limit, sort, order, };
+            const requestData = { location, dateRange, amenities, facilities, propertyType, rules, mobileNumber, guests, bedrooms, beds, bathrooms, kitchen, page, limit, sort, order, };
 
             const res = await fetch('/api/fetch-data/listing/search', {
                 method: 'POST',

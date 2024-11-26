@@ -108,7 +108,7 @@ const Page = () => {
     const [formData, setFormData] = useState({
         'placeName': '',
         'propertyType': '',
-        'pickLocation': '',
+        'mobileNumber': '',
         'address': '',
         'size': '',
         'propertySizeType': '',
@@ -318,7 +318,7 @@ const Page = () => {
             return;
         }
 
-        if (formData.propertyType === '' || formData.placeName === '' || formData.pickLocation === '' || formData.address === '' || formData.size === '' || formData.propertySizeType === '' || formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
+        if (formData.propertyType === '' || formData.placeName === '' || formData.mobileNumber === '' || formData.address === '' || formData.size === '' || formData.propertySizeType === '' || formData.description.pricing.basePriceForWeekdays === '' || formData.description.pricing.basePriceForWeekends === '' || formData.description.pricing.monthlyDiscount === '') {
             Notiflix.Loading.remove();
             Notiflix.Notify.failure('Please fill in all required fields.');
             return;
@@ -384,7 +384,7 @@ const Page = () => {
         setFormData({
             'placeName': '',
             'propertyType': '',
-            'pickLocation': '',
+            'mobileNumber': '',
             'address': '',
             'size': '',
             'propertySizeType': '',
@@ -450,12 +450,12 @@ const Page = () => {
                     />
 
                     <InputWLabel
-                        label="Pick Location"
+                        label="Mobile Number"
                         inputType="text"
-                        placeHolder="Enter Location"
-                        value={formData.pickLocation}
+                        placeHolder="Enter Mobile Number"
+                        value={formData.mobileNumber}
                         handler={handleChange}
-                        name="pickLocation"
+                        name="mobileNumber"
                     />
 
                     <InputWLabel
@@ -499,6 +499,12 @@ const Page = () => {
                     ))}
 
                     <TextAreaWLabel label={"Description"} rows={4} placeHolder={"Please Enter Your Description."} name={'propertyDescription'} value={formData.propertyDescription} handler={handleChange} />
+
+                    <TextAreaWLabel label={"Map URL"} rows={4} placeHolder={"Please Copy Map URl from the google map and Past it here"} name={'mapUrl'} value={formData.mapUrl} handler={handleChange} />
+
+                    {formData.mapUrl && (
+                        <iframe src={formData.mapUrl} className="col-span-full rounded-lg overflow-clip" width="100%" height="400" style={{ border: 0 }} allowFullScreen={true} loading="lazy"></iframe>
+                    )}
 
                 </div>
                 <div className="grid grid-cols-6 mt-4 gap-x-4 gap-y-6">

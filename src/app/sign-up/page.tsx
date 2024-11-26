@@ -187,7 +187,7 @@ const Page = () => {
                 <div className={`flex flex-col gap-y-8 mt-8`}>
                     <InputWLabel label={'Email Address'} inputType={'email'} placeHolder={'example@gmail.com'}
                                  value={formData.email} handler={handleInputChange} name={'email'}/>
-                    <InputWLabel label={'firstName'} inputType={'text'} placeHolder={'John'}
+                    <InputWLabel label={'FirstName'} inputType={'text'} placeHolder={'John'}
                                  value={formData.firstName} handler={handleInputChange} name={'firstName'}/>
                     {/*@ts-ignore*/}
                     <SelectWLabel label={'Country'} options={countries}
@@ -202,7 +202,10 @@ const Page = () => {
                 </div>
                 <PrimaryButton content={'Register'} className={'w-full mt-8'} events={handleRegister}/>
                 <span className="block w-fit mx-auto mt-4">Already have an account? <a aria-label="link" href="/sign-in"
-                                                                                       className="text-primary font-bold">Sign In</a></span>
+                    className="text-primary font-bold">Sign In</a></span>
+                <br />
+                <span className="block w-fit mx-auto -mt-6">Want to list your property? <a aria-label="link" href="owner/sign-in"
+                                className="text-primary font-bold cursor-pointer">Sign in here</a></span>
             </div>
             <Footer setIsFlight={setIsFlight}/>
         </div>

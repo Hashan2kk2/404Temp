@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const {id} = await request.json();
-        const query = "SELECT tours.id AS 'tourId',tours.title,tours.tourType AS 'tourTypeId',tour_type.name AS 'tourType',tours.noOfNight,tours.host,tours.language AS 'languageId',language.name  AS 'language',tours.inclusions_exclusions,tours.description,tours.price,tours.insertedDate,tours.review,tours.availabilitySchedule FROM tours INNER JOIN tour_type ON tours.tourType = tour_type.id INNER JOIN language ON tours.language = language.id WHERE tours.id = ?";
+        const query = "SELECT tours.id AS 'tourId',tours.title,tours.tourType AS 'tourTypeId',tour_type.name AS 'tourType',tours.noOfNight,tours.host,tours.language AS 'languageId',language.name  AS 'language',tours.inclusions_exclusions,tours.description,tours.price,tours.insertedDate,tours.review FROM tours INNER JOIN tour_type ON tours.tourType = tour_type.id INNER JOIN language ON tours.language = language.id WHERE tours.id = ?";
         const conn = await connection;
         const [tours]: any = await conn.execute(query, [id]);
 
